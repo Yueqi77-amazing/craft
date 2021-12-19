@@ -1,0 +1,156 @@
+
+   
+{-# OPTIONS_GHC -XFlexibleContexts #-}
+{-# OPTIONS_GHC -XFlexibleInstances #-}
+module C13 (
+    print13
+) where
+import Data.Foldable
+--13.1
+listMatch :: Eq a =>  [a]->a ->Bool
+listMatch ls a = all (==a) ls
+
+--13.2
+numEqual :: Eq a => [a] ->a -> Int
+numEqual ls a 
+    | elem a ls = length (filter (==a) ls)
+    | otherwise = 0
+
+--13.3
+oneLookupFirst :: Eq a => [(a,b)] -> a-> b
+oneLookupFirst lst a = head (map snd (filter (\(x,_)->x==a) lst))
+
+oneLookupSecond :: Eq b => [(a,b)] -> b -> a
+oneLookupSecond lst b = head (map fst (filter (\(_,x)->x ==b) lst ))
+
+-- 13.4
+data Move = Paper | Stone | Scissors
+            deriving Eq
+
+instance Show Move where
+    show Paper    = "paper"
+    show Stone    = "stone"
+    show Scissors = "scissors"
+
+data Suit = Spade | Heart | Diamond | Club
+            deriving Eq
+
+instance Show Suit where
+    show Spade   = "spade"
+    show Heart   = "heart"
+    show Diamond = "diamond"
+    show Club    = "club"
+
+data Value = One | Two | Three | Four | Five | Six |
+             Seven | Eight | Nine | Ten | Jack | Queen |
+             King | Ace
+             deriving (Eq, Ord)
+
+instance Show Value where
+    show One   = "one"
+    show Two   = "two"
+    show Three = "three"
+    show Four  = "four"
+    show Five  = "five"
+    show Six   = "six"
+    show Seven = "seven"
+    show Eight = "eight"
+    show Nine  = "nine"
+    show Ten   = "ten"
+    show Jack  = "jack"
+    show Queen = "queen"
+    show King  = "king"
+    show Ace   = "ace"
+
+data Card = CardConstruct Suit Value
+            deriving Eq
+
+instance Show Card where
+    show (CardConstruct suit val)    = show suit ++ " " ++ show val
+
+data Trip = MakeTrip { a :: Int
+                     , b :: Int
+                     , c :: Int }
+            deriving Eq
+
+class Info a where
+    examples :: [a]
+    size :: a-> Int
+    size _ =1
+
+instance Info Int where
+    examples = [-100..100] 
+    
+instance Info Char where 
+    examples = ['a','A','z','Z','0','9']
+
+instance Info Bool where 
+    examples = [True,False]
+
+instance Info (Int -> Bool) where
+    examples = [(==1)]
+    size _= 1
+
+infocompare :: (Info a, Info b)=> a -> b -> Orde
+infocompare a b 
+    | size a < size b = G
+    | size a >size b = L
+    | otherwise = E
+
+data Orde = G | L | E
+
+instance Show Orde where
+    show G = "b is bigger than a"
+    show L = "b is smaller than a"
+    show E = "a equals to b"
+d :: Int
+d = 25
+
+class Eq a => Order a where
+    (-<), (>-), (-<=), (=>-) :: a -> a -> Bool
+    a1 -< a2           = a2 >- a1
+    a1 >- a2           = a2 -< a1
+    a1 -<= a2          = a2 =>- a1
+    a1 =>- a2          = a2 -<= a1
+    _max, _min :: a -> a -> a
+    _max a1 a2         = if a1 >- a2 then a1 else a2
+    _min a1 a2         = if a1 >- a2 then a2 else a1
+    _compare :: a -> a -> Ordering
+    _compare a1 a2
+        | a1 >- a2     = GT
+        | a1 == a2     = EQ
+        | otherwise    = LT
+
+instance (Order a, Order b) => Order (a, b) where
+    (a1, b1) -< (a2, b2)
+        | a1 -< a2                = True
+        | a1 == a2 && b1 -< b2    = True
+        | otherwise               = False
+    _max (a1, b1) (a2, b2)
+        | (a1, b1) -< (a2, b2)    = (a1, b1)
+        | otherwise               = (a2, b2)
+    _min (a1, b1) (a2, b2)
+        | (a1, b1) >- (a2, b2)    = (a1, b1)
+        | otherwise               = (a2, b2)
+
+instance Order a => Order [a] where
+    _  -< []            = False
+    [] -< (_ : _)       = True
+    (_a : lsa) -< (_b : lsb)
+        | _a -< _b      = True
+        | _a == _b      = lsa -< lsb
+        | otherwise     = False
+    _max lsa lsb
+        | lsa -< lsb    = lsb
+        | otherwise     = lsa
+    _min lsa lsb
+        | lsa -< lsb    = lsa
+        | otherwise     = lsb
+instance Order Char where (-<) = (<)
+instance Order Int where (-<) = (<)
+instance Order Float where (-<) = (<)
+instance Order Bool where (-<) = (<)
+
+
+print13:: IO()
+print13 = print $ show (infocompare d d)

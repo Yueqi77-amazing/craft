@@ -1,6 +1,13 @@
 module Main where
 
-import Lib
+import Data.String
+import Data.List
+
+
+import C14'1
+
 
 main :: IO ()
-main = someFunc
+
+
+main = print1414
